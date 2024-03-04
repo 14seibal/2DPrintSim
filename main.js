@@ -9,12 +9,21 @@ document.getElementById('newRandomMatrix').addEventListener('click', newRandomMa
 document.getElementById('newGCode').addEventListener('click', newGCodeClick);
 document.getElementById('resetPrint').addEventListener('click', resetPrint);
 document.getElementById('startPrint').addEventListener('click', startPrint);
+document.getElementById('moveSpeedInput').addEventListener('input', updateMoveSpeed);
+document.getElementById('printSpeedInput').addEventListener('input', updatePrintSpeed);
+
+document.getElementById('matrixSizeXInput').addEventListener('input', updateMatrixSizeX);
+document.getElementById('matrixSizeYInput').addEventListener('input', updateMatrixSizeY);
+document.getElementById('squareSizeInput').addEventListener('input', updateSquareSize);
 
 // Size of grid, margin, and squares within grid
 var margin = 20;
 var matrixSizeX = 10;
 var matrixSizeY = 10;
 var squareSize = 40;
+document.getElementById('matrixSizeXInput').value = matrixSizeX;
+document.getElementById('matrixSizeYInput').value = matrixSizeY;
+document.getElementById('squareSizeInput').value = squareSize;
 
 // Initialize nozzle size and location
 var nozzleSizeX = 40;
@@ -28,6 +37,12 @@ var extrusionCounter = 0;
 document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
 var printedMat;
 var drawingMat;
+
+//Initialize move and print speed
+var moveSpeed = 200;
+var printSpeed = 100;
+document.getElementById('moveSpeedInput').value = moveSpeed;
+document.getElementById('printSpeedInput').value = printSpeed;
 
 // Initialize gCode variables
 let gx = 0;
@@ -45,15 +60,15 @@ var img = new Image();
 img.src = 'nozzle.png'; // Provide the path to your image
 
 // Initialize G-code text
-// var text = ';G-code:\n';
 var gCodeArray = [';G-code:\n'];
 var textareacontent = ';G-code:\n';
 
 // Utitlity print error function
-const message = document.createElement('pre');
-function printError(textToDisplay) {
-    message.textContent = textToDisplay;
-    document.body.appendChild(message);
+function printError(message) {
+    // Get the existing paragraph element for error messages
+    const errorMessageParagraph = document.getElementById('errorMessageParagraph');
+    // Append the new error message to the existing content
+    errorMessageParagraph.innerHTML += message + '<br>';
 }
 
 // Utility delay function
@@ -68,7 +83,6 @@ const mainFunction = async () => {
 
     // Generate G-code from 1st matrix
     generateGCode(drawingMat);
-    // await delay(1000);
 
     // Initialize printed grid to the right with picture of nozzle on top, 
     printedMat = generateEmptyMatrix(10,10);
@@ -177,8 +191,6 @@ function fallingGrid(context, mat, blockSize, color0, color1) {
 function generateGCode(matrix) {
     let noFill = 0;
     let fill = 1;
-    let speed0 = 200;
-    let speed1 = 100;
     let totalExtruded = 0;
     
     function printGCode() {
@@ -195,12 +207,12 @@ function generateGCode(matrix) {
         let new_text = '';
         if (fill == 0) { // if no fill, set code G0 and move faster
             code = 'G0';
-            speed = speed0;
+            speed = moveSpeed;
             new_text = code + ' X' + nextXCoord + ' Y' + nextYCoord + ' F' + speed + '\n';
         }
         else { // if fill, set code G1 and move slower
             code = 'G1';
-            speed = speed1;
+            speed = printSpeed;
             new_text = code + ' X' + nextXCoord + ' Y' + nextYCoord + ' F' + speed + ' E' + totalExtruded + '\n';
         }
         return new_text;
@@ -311,7 +323,6 @@ function movePictureX(context, row) {
 
     let oldE = extrusionCounter;
     let totaldE = gE - oldE;
-    // printError(curE);
 
     let dist = Math.sqrt(dx*dx+dy*dy);
     let xspeed = 0;
@@ -490,6 +501,7 @@ async function resetPrint() {
 }
 
 async function startPrint() {
+    printError("Starting print");
     resetFlag = true;
     extrusionCounter = 0;
     document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
@@ -506,4 +518,26 @@ async function startPrint() {
     // Move nozzle according to g-code
     movePictureX(ctx2, row);
 
+}
+
+// Function to update move speed from input
+function updateMoveSpeed() {
+    moveSpeed = document.getElementById('moveSpeedInput').value;
+}
+
+// Function to update print speed from input
+function updatePrintSpeed() {
+    printSpeed = document.getElementById('printSpeedInput').value;
+}
+
+function updateMatrixSizeX() {
+    matrixSizeX = document.getElementById('matrixSizeXInput').value;
+}
+
+function updateMatrixSizeY() {
+    matrixSizeY = document.getElementById('matrixSizeYInput').value;
+}
+
+function updateSquareSize() {
+    squareSize = document.getElementById('squareSizeInput').value;
 }

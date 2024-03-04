@@ -14,7 +14,13 @@
 <body>
     <p>Total extruded: <span id="extrusionCounterDisplay"></span></p>
     <p>Nozzle location: X<span id="nozzleX"></span> Y<span id="nozzleY"></span></p>
-    
+    <p>Move speed: <input type="number" id="moveSpeedInput"></p>
+    <p>Print speed: <input type="number" id="printSpeedInput"></p>
+
+    <p>Matrix size x: <input type="number" id="matrixSizeXInput"></p>
+    <p>Matrix size y: <input type="number" id="matrixSizeYInput"></p>
+    <p>Square size: <input type="number" id="squareSizeInput"></p>
+
     <button id="newRandomMatrix">Generate New Image</button>
     <button id="newGCode">Generate New G-code</button>
     <button id="resetPrint">Reset Print</button>
@@ -25,6 +31,10 @@
     <canvas id="canvas1" width="440" height="440"></canvas>
     <textarea id="gCode" rows="27" cols="25"></textarea>
     <canvas id="canvas2" width="440" height="440"></canvas>
+
+    <div id="errorMessages">
+        <p id="errorMessageParagraph"></p>
+    </div>
 
     <script src="main.js"></script>
 </body>
