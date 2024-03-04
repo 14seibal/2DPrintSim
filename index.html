@@ -12,14 +12,18 @@
 	}
 </style>
 <body>
-    <textarea id="gCode" rows="20" cols="50"></textarea>
-
+    <p>Total extruded: <span id="extrusionCounterDisplay"></span></p>
+    <p>Nozzle location: X<span id="nozzleX"></span> Y<span id="nozzleY"></span></p>
+    
     <button id="newRandomMatrix">Generate New Image</button>
     <button id="newGCode">Generate New G-code</button>
     <button id="resetPrint">Reset Print</button>
     <button id="startPrint">Start Print</button>
+    
+    <div style="height: 10px;"></div>
 
     <canvas id="canvas1" width="440" height="440"></canvas>
+    <textarea id="gCode" rows="27" cols="25"></textarea>
     <canvas id="canvas2" width="440" height="440"></canvas>
 
     <script src="main.js"></script>

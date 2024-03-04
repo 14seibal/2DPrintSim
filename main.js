@@ -4,7 +4,7 @@ var canvas2 = document.getElementById('canvas2');
 var ctx1 = canvas1.getContext('2d');
 var ctx2 = canvas2.getContext('2d');
 
-// Add event listener to the button
+// Add event listener to the buttons
 document.getElementById('newRandomMatrix').addEventListener('click', newRandomMatrixClick);
 document.getElementById('newGCode').addEventListener('click', newGCodeClick);
 document.getElementById('resetPrint').addEventListener('click', resetPrint);
@@ -22,9 +22,19 @@ var nozzleSizeY = 40;
 var nozzleX = margin + matrixSizeX * squareSize/2 - nozzleSizeX/2;
 var nozzleY = margin + matrixSizeY * squareSize/2 - nozzleSizeY;
 var nozzleLocation = [nozzleX, nozzleY];
+document.getElementById('nozzleX').textContent = nozzleLocation[0].toFixed(2);
+document.getElementById('nozzleY').textContent = nozzleLocation[1].toFixed(2);
 var extrusionCounter = 0;
+document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
 var printedMat;
 var drawingMat;
+
+// Initialize gCode variables
+let gx = 0;
+let gy = 0;
+let gE = 0;
+let gF = 0;
+let gFill = false;
 
 // Initialize stopAnimation flag to false, will be set to true after each G-code finishes
 var stopAnimation = false;
@@ -54,9 +64,7 @@ const mainFunction = async () => {
     // Create matrix of random black and white squares, make black squares fall to bottom
     drawingMat = generateRandomMatrix(matrixSizeX, matrixSizeY);
     drawGrid(ctx1, drawingMat, squareSize, 'white', 'black');
-    // await delay(1000);
     fallingGrid(ctx1, drawingMat, squareSize, 'white', 'black'); // { await delay(0);} // Push black squares down until none are floating, wait 100ms each iteration
-    // await delay(1000);
 
     // Generate G-code from 1st matrix
     generateGCode(drawingMat);
@@ -67,39 +75,15 @@ const mainFunction = async () => {
     drawGrid(ctx2, printedMat, squareSize, "white", "black");
     await delay(100);
     ctx2.drawImage(img, (nozzleLocation[0]), (nozzleLocation[1]), nozzleSizeX, nozzleSizeY); // Specify the position and size of the image
-    // resetPrint();
-    // resetFlag = false;
-    // await delay(1000);
-
-    // printedMat = generateEmptyMatrix(10,10);
-    // Move the nozzle according to the g-code
-    // printError(gCodeArray.length);
-    // for (let i = 1; i < gCodeArray.length; i++) {
-        // let row = 1;
-        // printError(i);
-        // movePictureX(ctx2, row);
-        // while(!stopAnimation){ await delay(0);} // delay allows movePicture code to run while waiting
-        // await delay(2000);
-        // stopAnimation = false;
-        // await delay(100);
-        // if (resetFlag) { i = gCodeArray.length; }
-    // }
-
-    // printedMat = generateEmptyMatrix(10,10);
-    // drawGridScale(ctx3, printedMat, 4, 'rgba(0, 0, 0, 0)', 'rgb(255, 100, 100)');
-    // while(!fallingGrid(ctx3, printedMat, 4, 'rgba(0, 0, 0, 0)', 'rgb(255, 100, 100)')) { await delay(50);}
-
-
-
 }
 mainFunction();
 
 // Function to generate random matrix of 1s and 0s
 function generateEmptyMatrix(xSize, ySize) {
     let mat = [];
-    for (var i = 0; i < xSize; i++) {
+    for (let i = 0; i < xSize; i++) {
         mat[i] = [];
-        for (var j = 0; j < ySize; j++) {
+        for (let j = 0; j < ySize; j++) {
             mat[i][j] = 0;
         }
         // mat.push(row);
@@ -109,14 +93,14 @@ function generateEmptyMatrix(xSize, ySize) {
 
 // Function to generate random matrix of 1s and 0s
 function generateRandomMatrix(xSize, ySize) {
-    var matrix = [];
-    for (var i = 0; i < xSize; i++) {
-        matrix.push([]);
+    let mat = [];
+    for (let i = 0; i < xSize; i++) {
+        mat.push([]);
         for (var j = 0; j < ySize; j++) {
-            matrix[i].push(Math.round(Math.random()));
+            mat[i].push(Math.round(Math.random()));
         }
     }
-    return matrix;
+    return mat;
 }
 
 // Function to draw the grid based on the matrix
@@ -188,15 +172,6 @@ function fallingGrid(context, mat, blockSize, color0, color1) {
     // Redraw the grid
     drawGrid(context, mat, blockSize, color0, color1);
 
-    // // Check if animation is complete (all black squares reached the bottom)
-    // if (isAnimationComplete) {
-    //     // printError("resolved");
-    //     return true;
-    // }
-    // else {
-    //     // Continue animation (return false so the main function re-enters this function)
-    //     return false;
-    // }
 }
 
 function generateGCode(matrix) {
@@ -205,16 +180,7 @@ function generateGCode(matrix) {
     let speed0 = 200;
     let speed1 = 100;
     let totalExtruded = 0;
-
-    // Data to write to the file
-    // var text = ';G-code:\n';
-
-    // Create a <pre> element to display the data, append the <pre> element to the body
-    // const pre = document.createElement('pre');
-    // pre.textContent = text;
-    // pre.textContent = gCodeArray;
-    // document.body.appendChild(pre);
-
+    
     function printGCode() {
         // Join the array elements into a single string separated by newlines
         textareacontent = gCodeArray.join('');
@@ -237,11 +203,6 @@ function generateGCode(matrix) {
             speed = speed1;
             new_text = code + ' X' + nextXCoord + ' Y' + nextYCoord + ' F' + speed + ' E' + totalExtruded + '\n';
         }
-
-        // add new line of G-code
-        // let new_text = code + ' X' + nextXCoord + ' Y' + nextYCoord + ' F' + speed + '\n';
-        // text += new_text;
-        // pre.textContent = text;
         return new_text;
     }
 
@@ -275,99 +236,64 @@ function generateGCode(matrix) {
             }
         }
     }   
-    // pre.textContent = text;
-    // pre.textContent = gCodeArray;
+
     printGCode();
 }
 
-// Function to move the picture in the x direction at a given speed
-async function movePictureX(context, row) {
-
-    // initialize defaults
-    let gx = 1;
-    let gy = 1;
-    let gE = extrusionCounter;
-    let gspeed = 1;
-    let gfill = true;
-
-    // let gcode1 = parseGCodeFile();
-    // let gcode1 = "G0 X0 Y0 F100\n";
-
-    // function parseGCodeFile(stringoftext, line) {
-    //     let word = '';
-    //     let char = '';
-    //     let index = 0;
-    //     for (let n = 0; n <= line; n++) {
-    //         for(let i = index; i < stringoftext.length; i++) { // start at index where previous read ended
-    //             char = stringoftext[i];
-    //             index++;
-    //             word += char;
-    //             if(char == '\n') {
-    //                 i = stringoftext.length;
-    //             }
-    //         }
-    //         if (n != line) {
-    //             word = '';
-    //         }
-    //     }
-    //     return word;
-    // }
-  
-    // gcode1 = parseGCodeFile(row);
+function getGCodeLine(row) {
+    // Reads g-code from web-page, splits into array by row, reads array at specified row
     textareacontent = document.getElementById('gCode').value;
     gCodeArray = textareacontent.split(/(?<=[\n])/g);
-    gcode1 = gCodeArray[row];
-    // // printError(gcode1);
-    // textareacontent = document.getElementById('gCode').value;
-    // gcode1 = parseGCodeFile(textareacontent, row);
-    printError(gcode1);
+    let gCodeLine = gCodeArray[row];
+    return gCodeLine;
+}
 
+function handleGCode(code) {
+    // Read current line of G-code, updates gFill, gX, gY, gF, and gE accordingly
     let char = '';
     let word = '';
-    for (let i = 0; i < gcode1.length; i++) {
-        char = gcode1[i];
-        if (char != ' ' && char != '\n') {
+    for (let i = 0; i < code.length; i++) {
+        char = code[i];
+        if (char != ' ' && char != '\n') { //
             word += char;
         }
         else if (char == '\n') { // exit for loop
-            i = gcode1.length;
+            i = code.length;
         }
         if (char == ' ' || char == '\n') {
-            let key = word[0];
-            let value = parseInt(word.slice(1));
+            let key = word[0]; 
+            let value = parseInt(word.slice(1)); // value is number after 'key'
             switch(key) {
                 case 'G':
-                  if (value == 0) {
-                    gfill = false;
-                  }
-                  else if (value == 1) {
-                    gfill = true;
-                  }                 
-                  break;
+                    if (value == 0) {
+                    gFill = false;
+                    }
+                    else if (value == 1) {
+                    gFill = true;
+                    }                 
+                    break;
                 case 'X':
-                  gx = value;
-                  // code block
-                  break;
+                    gx = value;
+                    break;
                 case 'Y':
-                  gy = value;
-                  break;
+                    gy = value;
+                    break;
                 case 'F':
-                  gspeed = value;
-                  break;
+                    gF = value;
+                    break;
                 case 'E':
-                  gE = value;
-                  break;
+                    gE = value;
+                    break;
                 default:
-                  console.log("Invalid G-code\n");
+                    console.log("Invalid G-code\n");
             }
             word = '';
         }
     }
-    let gtext = 'Fill:' + gfill + ' X:' + gx + ' Y:' + gy + ' F:' + gspeed + '\n';
-    const pre2 = document.createElement('pre');
-    pre2.textContent = gcode1;
-    // document.body.appendChild(pre2);
-    
+}
+
+// Function to move the picture in the x direction at a given speed
+function movePictureX(context, row) {
     // initialize values before update
     let maxX = matrixSizeX*squareSize; //400
     let minX = 0; //0
@@ -378,8 +304,6 @@ async function movePictureX(context, row) {
     let origy = nozzleLocation[1]; // starts at 220 - nozzleSizeY
     let oldx = nozzleLocation[0];
     let oldy = nozzleLocation[1];
-    // let destx = gx*squareSize;
-    // let desty = maxY - gy*squareSize;
     let destx = gx;
     let desty = maxY - gy;
     let dx = destx - oldx;
@@ -396,28 +320,26 @@ async function movePictureX(context, row) {
     if (dx != 0) { 
         let fract = dy/dx; 
         angle = Math.atan(fract);
-        xspeed = Math.abs(gspeed * Math.cos(angle));
-        yspeed = Math.abs(gspeed * Math.sin(angle));
+        xspeed = Math.abs(gF * Math.cos(angle));
+        yspeed = Math.abs(gF * Math.sin(angle));
         if (xspeed > yspeed) {
-            yspeed = yspeed/xspeed*gspeed;
-            xspeed = gspeed;
+            yspeed = yspeed/xspeed*gF;
+            xspeed = gF;
         }
         else if (xspeed < yspeed) {
-            xspeed = xspeed/yspeed*gspeed;
-            yspeed = gspeed;
+            xspeed = xspeed/yspeed*gF;
+            yspeed = gF;
         }
         else if (xspeed == yspeed) {
-            xspeed = gspeed;
-            yspeed = gspeed;
+            xspeed = gF;
+            yspeed = gF;
         }
  
     }
     else {
         xspeed = 0;
-        yspeed = gspeed;
+        yspeed = gF;
     }
-    // printError(xspeed);
-    // let secondsNeeded = Math.ceil(dist/gspeed);
 
     let xdir = 1;
     if(dx!=0) { xdir = dx/Math.abs(dx); }
@@ -462,7 +384,7 @@ async function movePictureX(context, row) {
         let stepE = 0;
         let stepx = 0;
         
-        if (gfill == true) {
+        if (gFill == true) {
             for (let i = startXCoord; i <= endXCoord; i++) {
                 if (i == startXCoord) {
                     if (newXCoord > (i+1)) {
@@ -490,6 +412,7 @@ async function movePictureX(context, row) {
                     stepE = newE - extrusionCounter;
                 }
                 extrusionCounter += stepE;
+                document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
                 
                 // printError(extrusionCounter);
             }
@@ -509,6 +432,8 @@ async function movePictureX(context, row) {
         oldy = newy;
         nozzleLocation[0] = newx;
         nozzleLocation[1] = newy;
+        document.getElementById('nozzleX').textContent = nozzleLocation[0].toFixed(2);
+        document.getElementById('nozzleY').textContent = nozzleLocation[1].toFixed(2);
 
         if (newx == destx && newy == desty) {
             stopAnimation = true;
@@ -522,6 +447,12 @@ async function movePictureX(context, row) {
             stopAnimation = false;
             row++;         
             if (row<gCodeArray.length) {
+                // Retrieve G-code at current line
+                let gcode1 = getGCodeLine(row);
+
+                // Read current line of G-code, change values accordingly
+                handleGCode(gcode1);
+
                 movePictureX(ctx2, row);
             }
         }
@@ -536,10 +467,7 @@ async function movePictureX(context, row) {
 // Function to handle button click event
 function newRandomMatrixClick() {
     // Generate a new random matrix with dimensions 10x10
-    // printError('Button pressed');
-    const rows = 10;
-    const cols = 10;
-    drawingMat = generateRandomMatrix(rows, cols);
+    drawingMat = generateRandomMatrix(matrixSizeX, matrixSizeY);
     // Draw the new matrix on the canvas
     drawGrid(ctx1, drawingMat, squareSize, 'white', 'black');
     fallingGrid(ctx1, drawingMat, squareSize, 'white', 'black');
@@ -547,8 +475,6 @@ function newRandomMatrixClick() {
 
 // Function to handle button click event
 function newGCodeClick() {
-    // New GCode based on new matrix
-    // text = ';G-code:\n';
     gCodeArray = [';G-code:\n'];
     generateGCode(drawingMat);
 }
@@ -556,6 +482,7 @@ function newGCodeClick() {
 async function resetPrint() {
     resetFlag = true;
     extrusionCounter = 0;
+    document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
     await delay(100);
     printedMat = generateEmptyMatrix(10,10);
     drawGrid(ctx2, printedMat, squareSize, "white", "black");
@@ -565,26 +492,18 @@ async function resetPrint() {
 async function startPrint() {
     resetFlag = true;
     extrusionCounter = 0;
+    document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
     await delay(100);
     resetFlag = false;
-    textareacontent = document.getElementById('gCode').value;
-    gCodeArray = textareacontent.split('\n');
-    // generateGCode(drawingMat);
 
-
-    // for (let i = 1; i < gCodeArray.length; i++) {
-    //     // let row = 1;
-    //     // printError(i);
-    //     movePictureX(ctx2, i);
-    //     while(!stopAnimation){ await delay(0);} // delay allows movePicture code to run while waiting
-    //     // await delay(2000);
-    //     stopAnimation = false;
-    //     await delay(100);
-    //     if (resetFlag) { i = gCodeArray.length; }
-    // }
-
+    // Retrieve G-code at current line
     let row = 1;
-    // printError(i);
+    let gcode1 = getGCodeLine(row);
+
+    // Read current line of G-code, change values accordingly
+    handleGCode(gcode1);
+
+    // Move nozzle according to g-code
     movePictureX(ctx2, row);
 
 }
