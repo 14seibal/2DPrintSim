@@ -77,27 +77,22 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 // Main function - make it async so await can be used to delay
 const mainFunction = async () => {
     // Create matrix of random black and white squares, make black squares fall to bottom
-    drawingMat = generateRandomMatrix(matrixSizeX, matrixSizeY);
-    drawGrid(ctx1, drawingMat, squareSize, 'white', 'black');
-    fallingGrid(ctx1, drawingMat, squareSize, 'white', 'black'); // { await delay(0);} // Push black squares down until none are floating, wait 100ms each iteration
+    newRandomMatrixClick();
 
     // Generate G-code from 1st matrix
-    generateGCode(drawingMat);
+    newGCodeClick();
 
     // Initialize printed grid to the right with picture of nozzle on top, 
-    printedMat = generateEmptyMatrix(10,10);
-    drawGrid(ctx2, printedMat, squareSize, "white", "black");
-    await delay(100);
-    ctx2.drawImage(img, (nozzleLocation[0]), (nozzleLocation[1]), nozzleSizeX, nozzleSizeY); // Specify the position and size of the image
+    resetPrint();
 }
 mainFunction();
 
 // Function to generate random matrix of 1s and 0s
 function generateEmptyMatrix(xSize, ySize) {
     let mat = [];
-    for (let i = 0; i < xSize; i++) {
+    for (let i = 0; i < ySize; i++) { // num rows
         mat[i] = [];
-        for (let j = 0; j < ySize; j++) {
+        for (let j = 0; j < xSize; j++) { // num col
             mat[i][j] = 0;
         }
         // mat.push(row);
@@ -108,9 +103,9 @@ function generateEmptyMatrix(xSize, ySize) {
 // Function to generate random matrix of 1s and 0s
 function generateRandomMatrix(xSize, ySize) {
     let mat = [];
-    for (let i = 0; i < xSize; i++) {
+    for (let i = 0; i < ySize; i++) {
         mat.push([]);
-        for (var j = 0; j < ySize; j++) {
+        for (var j = 0; j < xSize; j++) {
             mat[i].push(Math.round(Math.random()));
         }
     }
@@ -121,8 +116,8 @@ function generateRandomMatrix(xSize, ySize) {
 function drawGrid(context, mat, blockSize, color0, color1) {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
-    for (var i = 0; i < mat.length; i++) {
-        for (var j = 0; j < mat[0].length; j++) {
+    for (var i = 0; i < mat.length; i++) { // num rows
+        for (var j = 0; j < mat[0].length; j++) { // num columns
             // Set the color based on the value in the matrix
             if (mat[i][j] === 1) {
                 context.fillStyle = color1;
@@ -234,7 +229,7 @@ function generateGCode(matrix) {
             }
             else if (curVal == 1 && matrix[numRows-i-1][j] == noFill) {  // move with filling
                 curVal = 0;
-                totalExtruded += (j-oldJ); // * squareSize * squareSize;
+                totalExtruded += (j-oldJ); //
                 gCodeArray[arrayIndex] = newGCode(j*squareSize, i*squareSize, fill, totalExtruded); 
                 arrayIndex++;
                 oldJ = j;
