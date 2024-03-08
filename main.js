@@ -28,8 +28,6 @@ document.getElementById('squareSizeInput').value = squareSize;
 // Initialize nozzle size and location
 var nozzleSizeX = 40;
 var nozzleSizeY = 40;
-// var nozzleX = margin + matrixSizeX * squareSize/2 - nozzleSizeX/2;
-// var nozzleY = margin + matrixSizeY * squareSize/2 - nozzleSizeY;
 var nozzleLocation = [200, 200-squareSize];
 document.getElementById('nozzleX').textContent = nozzleLocation[0].toFixed(2);
 document.getElementById('nozzleY').textContent = nozzleLocation[1].toFixed(2);
@@ -303,10 +301,8 @@ function handleGCode(code) {
 // Function to move the picture in the x direction at a given speed
 function movePictureX(context, row) {
     // initialize values before update
-    let maxX = 400; //400
-    let minX = 0; //0
-    // let maxY = (matrixSizeY-1)*squareSize - 20;
-    // let minY = -20;
+    let maxX = 400; 
+    let minX = 0;
     let maxY = 400;
     let minY = 0;
 
@@ -434,6 +430,7 @@ function movePictureX(context, row) {
         
         // Draw the image at the new position
         ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+        // printError(printedMat.length);
         drawGridScale(ctx2, printedMat, squareSize);
         nozzleLocation[0] = newx;
         nozzleLocation[1] = newy;
@@ -497,7 +494,7 @@ async function resetPrint() {
     extrusionCounter = 0;
     document.getElementById('extrusionCounterDisplay').textContent = extrusionCounter.toFixed(2);
     await delay(100);
-    printedMat = generateEmptyMatrix(10,10);
+    printedMat = generateEmptyMatrix(matrixSizeX, matrixSizeY);
     drawGrid(ctx2, printedMat, squareSize, "white", "black");
     ctx2.drawImage(img, margin + nozzleLocation[0]-nozzleSizeX/2, margin + 400 - nozzleLocation[1]-nozzleSizeY-squareSize, nozzleSizeX, nozzleSizeY); // Specify the position and size of the image
 }
